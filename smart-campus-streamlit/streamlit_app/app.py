@@ -76,21 +76,21 @@ with st.sidebar:
 # Page routing
 if st.session_state.token:
     if page == "Dashboard":
-        from streamlit_app.pages import dashboard; dashboard.show()
+        from streamlit_app._pages import dashboard; dashboard.show()
     elif page == "Events":
-        from streamlit_app.pages import events; events.show()
+        from streamlit_app._pages import events; events.show()
     elif page == "My Events":
-        from streamlit_app.pages import my_events; my_events.show()
+        from streamlit_app._pages import my_events; my_events.show()
     elif page == "Venues":
-        from streamlit_app.pages import venues; venues.show()
+        from streamlit_app._pages import venues; venues.show()
     elif page == "Announcements":
-        from streamlit_app.pages import announcements; announcements.show()
+        from streamlit_app._pages import announcements; announcements.show()
     elif page == "Admin Panel":
-        from streamlit_app.pages import admin; admin.show()
+        from streamlit_app._pages import admin; admin.show()
 else:
     if page == "Login":
-        from streamlit_app.pages import login; login.show()
+        from streamlit_app._pages import login; login.show()
     elif page == "Register":
-        from streamlit_app.pages import register; register.show()
+        from streamlit_app._pages import register; register.show()
     elif page == "Forgot Password":
-        from streamlit_app.pages import forgot_password; forgot_password.show()
+        from streamlit_app._pages import forgot_password; forgot_password.show()
