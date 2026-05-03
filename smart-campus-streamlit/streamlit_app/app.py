@@ -15,11 +15,13 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+RAILWAY_BASE = "https://smart-campus-event-management-system-production.up.railway.app/api"
+
 # Session defaults
 for key, val in {
     "token": None,
     "user": None,
-    "api_base": "https://smart-campus-event-management-system-production.up.railway.app/api",
+    "api_base": RAILWAY_BASE,
 }.items():
     if key not in st.session_state:
         st.session_state[key] = val
@@ -50,45 +52,45 @@ with st.sidebar:
 
     if st.session_state.token:
         user = st.session_state.user
-        role = user.get("role","STUDENT")
-        st.markdown(f"👤 **{user.get('name','User')}**")
-        badge = {"ADMIN":"badge-admin","FACULTY":"badge-faculty",
-                 "STAFF":"badge-staff"}.get(role,"badge-student")
+        role = user.get("role", "STUDENT")
+        st.markdown(f"👤 **{user.get('name', 'User')}**")
+        badge = {"ADMIN": "badge-admin", "FACULTY": "badge-faculty",
+                 "STAFF": "badge-staff"}.get(role, "badge-student")
         st.markdown(f'<span class="{badge}">{role}</span>', unsafe_allow_html=True)
         st.divider()
 
-        pages = ["🏠 Dashboard", "📅 Events", "🗓️ My Events", "📍 Venues", "📢 Announcements"]
+        pages = ["Dashboard", "Events", "My Events", "Venues", "Announcements"]
         if role == "ADMIN":
-            pages.append("⚙️ Admin Panel")
+            pages.append("Admin Panel")
         page = st.radio("Navigate", pages, label_visibility="collapsed")
 
         st.divider()
-        if st.button("🚪 Logout", use_container_width=True):
+        if st.button("Logout", use_container_width=True):
             st.session_state.token = None
             st.session_state.user = None
             st.rerun()
     else:
-        page = st.radio("Navigate", ["🔐 Login", "📝 Register", "🔑 Forgot Password"],
+        page = st.radio("Navigate", ["Login", "Register", "Forgot Password"],
                         label_visibility="collapsed")
 
 # Page routing
 if st.session_state.token:
-    if "Dashboard" in page:
+    if page == "Dashboard":
         from streamlit_app.pages import dashboard; dashboard.show()
-    elif "Events" in page and "My" not in page:
+    elif page == "Events":
         from streamlit_app.pages import events; events.show()
-    elif "My Events" in page:
+    elif page == "My Events":
         from streamlit_app.pages import my_events; my_events.show()
-    elif "Venues" in page:
+    elif page == "Venues":
         from streamlit_app.pages import venues; venues.show()
-    elif "Announcements" in page:
+    elif page == "Announcements":
         from streamlit_app.pages import announcements; announcements.show()
-    elif "Admin" in page:
+    elif page == "Admin Panel":
         from streamlit_app.pages import admin; admin.show()
 else:
-    if "Login" in page:
+    if page == "Login":
         from streamlit_app.pages import login; login.show()
-    elif "Register" in page:
+    elif page == "Register":
         from streamlit_app.pages import register; register.show()
-    elif "Forgot" in page:
+    elif page == "Forgot Password":
         from streamlit_app.pages import forgot_password; forgot_password.show()
