@@ -10,7 +10,7 @@ import streamlit as st
 
 st.set_page_config(
     page_title="Smart Campus EMS",
-    page_icon="🎓",
+    page_icon="🏫",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -45,7 +45,7 @@ st.markdown("""
 
 # Sidebar navigation
 with st.sidebar:
-    st.markdown("## 🎓 Smart Campus EMS")
+    st.markdown("## 🏫 Smart Campus EMS")
     st.divider()
 
     if st.session_state.token:
