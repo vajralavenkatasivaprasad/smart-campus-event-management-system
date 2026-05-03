@@ -1,7 +1,12 @@
+$content = @'
 """
-Smart Campus Event Management System — Streamlit Frontend
+Smart Campus Event Management System - Streamlit Frontend
 Run: streamlit run app.py
 """
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import streamlit as st
 
 st.set_page_config(
@@ -11,16 +16,16 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ── Session defaults ──────────────────────────────────────────
+# Session defaults
 for key, val in {
     "token": None,
     "user": None,
-    "api_base": "https://smart-campus-event-management-system-production.up.railway.app/",
+    "api_base": "https://smart-campus-event-management-system-production.up.railway.app/api",
 }.items():
     if key not in st.session_state:
         st.session_state[key] = val
 
-# ── Custom CSS ────────────────────────────────────────────────
+# Custom CSS
 st.markdown("""
 <style>
     [data-testid="stSidebar"] { background: linear-gradient(180deg,#1a1a2e 0%,#16213e 100%); }
@@ -39,7 +44,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ── Sidebar navigation ────────────────────────────────────────
+# Sidebar navigation
 with st.sidebar:
     st.markdown("## 🎓 Smart Campus EMS")
     st.divider()
@@ -67,7 +72,7 @@ with st.sidebar:
         page = st.radio("Navigate", ["🔐 Login", "📝 Register", "🔑 Forgot Password"],
                         label_visibility="collapsed")
 
-# ── Page routing ──────────────────────────────────────────────
+# Page routing
 if st.session_state.token:
     if "Dashboard" in page:
         from streamlit_app.pages import dashboard; dashboard.show()
@@ -88,3 +93,5 @@ else:
         from streamlit_app.pages import register; register.show()
     elif "Forgot" in page:
         from streamlit_app.pages import forgot_password; forgot_password.show()
+'@
+$content | Out-File -FilePath "streamlit_app\app.py" -Encoding UTF8
