@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Details - Smart Campus EMS</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+</head>
+<body>
+<nav class="navbar" id="navbar">
+    <div class="nav-container">
+        <div class="nav-brand"><a href="../index.html"><i class="fas fa-graduation-cap"></i> Smart Campus EMS</a></div>
+        <ul class="nav-links" id="navLinks">
+            <li><a href="../index.html">Home</a></li>
+            <li><a href="events.html" class="active">Events</a></li>
+            <li><a href="venues.html">Venues</a></li>
+            <li><a href="announcements.html">Announcements</a></li>
+        </ul>
+        <div class="nav-actions">
+            <div id="authButtons"><a href="login.html" class="btn btn-outline">Login</a><a href="register.html" class="btn btn-primary">Register</a></div>
+            <div id="userMenu" class="user-menu hidden">
+                <div class="user-avatar" id="userAvatar"></div>
+                <div class="dropdown-menu">
+                    <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                    <a href="my-events.html"><i class="fas fa-calendar-check"></i> My Events</a>
+                    <hr><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </div>
+            </div>
+            <div class="notification-bell hidden" id="notifBell" onclick="toggleNotifications()"><i class="fas fa-bell"></i><span class="notif-badge" id="notifCount">0</span></div>
+        </div>
+    </div>
+</nav>
+<div style="padding-top:65px">
+    <div id="eventContent" class="container" style="padding:40px 20px 60px">
+        <div class="loading-spinner"><div class="spinner"></div></div>
+    </div>
+</div>
+
+<!-- QR Modal -->
+<div id="qrModal" class="modal-overlay hidden">
+    <div class="modal" style="text-align:center">
+        <button class="modal-close" onclick="closeQrModal()" style="position:absolute;top:16px;right:16px"><i class="fas fa-times"></i></button>
+        <div class="ticket-card">
+            <div class="ticket-number">TICKET</div>
+            <div class="ticket-event" id="modalEventTitle"></div>
+            <div id="modalTicketNum" style="font-size:12px;opacity:0.8"></div>
+        </div>
+        <div class="qr-container">
+            <img id="qrImage" src="" alt="QR Code" style="width:200px;height:200px">
+            <p style="margin-top:12px;font-size:13px;color:var(--gray-500)">Show this QR code at the event entrance</p>
+        </div>
+        <button class="btn btn-primary" onclick="window.print()"><i class="fas fa-print"></i> Print Ticket</button>
+    </div>
+</div>
+
+<!-- Feedback Modal -->
+<div id="feedbackModal" class="modal-overlay hidden">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Submit Feedback</h3>
+            <button class="modal-close" onclick="closeFeedback()"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="feedbackAlert"></div>
+        <div class="form-group">
+            <label>Rating</label>
+            <div class="star-rating" id="starRating">
+                <span class="star" onclick="setRating(1)">★</span>
+                <span class="star" onclick="setRating(2)">★</span>
+                <span class="star" onclick="setRating(3)">★</span>
+                <span class="star" onclick="setRating(4)">★</span>
+                <span class="star" onclick="setRating(5)">★</span>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Comment</label>
+            <textarea id="feedbackComment" rows="4" placeholder="Share your experience..." style="width:100%;padding:12px;border:2px solid var(--gray-300);border-radius:8px;font-size:14px;resize:vertical"></textarea>
+        </div>
+        <button class="btn btn-primary btn-full" onclick="submitFeedback()"><i class="fas fa-paper-plane"></i> Submit Feedback</button>
+    </div>
+</div>
+
+<!-- Notification Panel -->
+<div class="notif-panel hidden" id="notifPanel">
+    <div class="notif-header"><h4>Notifications</h4><button onclick="toggleNotifications()"><i class="fas fa-times"></i></button></div>
+    <div class="notif-list" id="notifList"></div>
+</div>
+
+<div class="chatbot-container" id="chatbotContainer">
+    <div class="chatbot-header">
+        <div class="chatbot-title"><div class="chatbot-avatar"><i class="fas fa-robot"></i></div><div><strong>Campus Assistant</strong></div></div>
+        <button onclick="toggleChatbot()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="chatbot-messages" id="chatbotMessages">
+        <div class="bot-message"><div class="bot-bubble">Need help with this event? Ask me!</div></div>
+    </div>
+    <div class="chatbot-input">
+        <input type="text" id="chatInput" placeholder="Ask me..." onkeypress="handleChatKey(event)">
+        <button onclick="sendChatMessage()"><i class="fas fa-paper-plane"></i></button>
+    </div>
+</div>
+<button class="chatbot-toggle" onclick="toggleChatbot()"><i class="fas fa-robot"></i></button>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="../js/api.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/chatbot.js"></script>
+<script>
+let eventId, currentEvent, selectedRating = 0, registrationData = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
+    const params = new URLSearchParams(window.location.search);
+    eventId = params.get('id');
+    if (!eventId) { window.location.href = 'events.html'; return; }
+    loadEventDetail();
+});
+
+async function loadEventDetail() {
+    try {
+        const res = await API.getEvent(eventId);
+        currentEvent = res.event;
+        if (!currentEvent) { document.getElementById('eventContent').innerHTML = '<p>Event not found</p>'; return; }
+
+        const user = getUser();
+        let isRegistered = false;
+        if (isLoggedIn()) {
+            const myEvents = await API.getMyEvents();
+            if (myEvents && myEvents.length) {
+                const reg = myEvents.find(r => r.event && r.event.id == eventId);
+                if (reg) { isRegistered = true; registrationData = reg; }
+            }
+        }
+
+        renderEvent(currentEvent, res.avgRating, res.feedbackCount, isRegistered);
+        if (currentEvent.venue?.latitude || currentEvent.latitude) {
+            setTimeout(() => initMap(), 300);
+        }
+    } catch(e) {
+        document.getElementById('eventContent').innerHTML = '<p style="color:var(--danger)">Failed to load event. Please check the backend.</p>';
+    }
+}
+
+function renderEvent(event, avgRating, feedbackCount, isRegistered) {
+    const spotsLeft = event.maxAttendees ? event.maxAttendees - (event.currentAttendees || 0) : null;
+    const isFull = spotsLeft !== null && spotsLeft <= 0;
+    const deadlinePassed = event.registrationDeadline && new Date() > new Date(event.registrationDeadline);
+    const canRegister = !isRegistered && !isFull && !deadlinePassed && event.status === 'PUBLISHED';
+
+    document.getElementById('eventContent').innerHTML = `
+        <div style="margin-bottom:20px"><a href="events.html" style="color:var(--primary);display:flex;align-items:center;gap:8px;font-size:14px"><i class="fas fa-arrow-left"></i> Back to Events</a></div>
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:30px;align-items:start">
+            <!-- Left -->
+            <div>
+                <div style="border-radius:16px;overflow:hidden;margin-bottom:24px;height:320px;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center">
+                    ${event.bannerImage ? `<img src="${event.bannerImage}" style="width:100%;height:100%;object-fit:cover">` : `<i class="fas fa-calendar-alt" style="font-size:80px;color:rgba(255,255,255,0.4)"></i>`}
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+                    <span class="badge badge-primary">${event.category}</span>
+                    ${event.free||event.isFree ? '<span class="badge badge-success">FREE EVENT</span>' : `<span class="badge badge-warning">₹${event.ticketPrice}</span>`}
+                    <span class="badge ${event.status==='PUBLISHED'?'badge-success':'badge-gray'}">${event.status}</span>
+                </div>
+                <h1 style="font-size:32px;font-weight:800;margin-bottom:16px">${event.title}</h1>
+                <div style="display:flex;gap:24px;flex-wrap:wrap;margin-bottom:24px;color:var(--gray-500);font-size:14px">
+                    <span><i class="fas fa-calendar" style="color:var(--primary)"></i> ${formatDateTime(event.startDate)}</span>
+                    <span><i class="fas fa-calendar-check" style="color:var(--primary)"></i> Ends: ${formatDateTime(event.endDate)}</span>
+                    ${event.venue ? `<span><i class="fas fa-map-marker-alt" style="color:var(--primary)"></i> ${event.venue.name}</span>` : ''}
+                    <span><i class="fas fa-users" style="color:var(--primary)"></i> ${event.currentAttendees || 0}${event.maxAttendees ? '/'+event.maxAttendees : ''} registered</span>
+                </div>
+                <div class="card" style="margin-bottom:24px">
+                    <h3 style="margin-bottom:12px">About This Event</h3>
+                    <p style="color:var(--gray-700);line-height:1.8">${event.description || 'No description provided.'}</p>
+                </div>
+                ${event.venue?.latitude || event.latitude ? `
+                <div class="card" style="margin-bottom:24px">
+                    <h3 style="margin-bottom:12px"><i class="fas fa-map-marked-alt" style="color:var(--primary)"></i> Event Location</h3>
+                    <div id="eventMap" style="height:300px;border-radius:10px"></div>
+                    ${event.venue ? `<p style="margin-top:10px;color:var(--gray-500);font-size:14px"><i class="fas fa-map-marker-alt"></i> ${event.venue.location || event.venue.name}</p>` : ''}
+                </div>` : ''}
+                <!-- Feedback Section -->
+                <div class="card">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+                        <h3><i class="fas fa-star" style="color:var(--accent)"></i> Reviews & Ratings</h3>
+                        ${isLoggedIn() && isRegistered ? `<button class="btn btn-outline btn-sm" onclick="openFeedback()"><i class="fas fa-edit"></i> Add Review</button>` : ''}
+                    </div>
+                    <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
+                        <div style="font-size:48px;font-weight:800;color:var(--primary)">${parseFloat(avgRating||0).toFixed(1)}</div>
+                        <div>
+                            <div class="star-rating" style="font-size:24px">${'★'.repeat(Math.round(avgRating||0))}${'☆'.repeat(5-Math.round(avgRating||0))}</div>
+                            <p style="color:var(--gray-500);font-size:14px">${feedbackCount} review${feedbackCount !== 1 ? 's' : ''}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Right -->
+            <div>
+                <div class="card" style="position:sticky;top:85px">
+                    <h3 style="margin-bottom:20px">Event Info</h3>
+                    <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:24px">
+                        <div style="display:flex;gap:12px;align-items:flex-start">
+                            <div style="width:36px;height:36px;background:var(--primary-light);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--primary);flex-shrink:0"><i class="fas fa-calendar"></i></div>
+                            <div><p style="font-size:12px;color:var(--gray-500)">Date & Time</p><p style="font-weight:600;font-size:14px">${formatDateTime(event.startDate)}</p></div>
+                        </div>
+                        ${event.venue ? `<div style="display:flex;gap:12px;align-items:flex-start">
+                            <div style="width:36px;height:36px;background:var(--primary-light);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--primary);flex-shrink:0"><i class="fas fa-map-marker-alt"></i></div>
+                            <div><p style="font-size:12px;color:var(--gray-500)">Venue</p><p style="font-weight:600;font-size:14px">${event.venue.name}</p><p style="font-size:12px;color:var(--gray-500)">${event.venue.location||''}</p></div>
+                        </div>` : ''}
+                        <div style="display:flex;gap:12px;align-items:flex-start">
+                            <div style="width:36px;height:36px;background:var(--primary-light);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--primary);flex-shrink:0"><i class="fas fa-users"></i></div>
+                            <div><p style="font-size:12px;color:var(--gray-500)">Capacity</p>
+                            <p style="font-weight:600;font-size:14px">${event.maxAttendees ? `${event.currentAttendees||0} / ${event.maxAttendees}` : 'Unlimited'}</p>
+                            ${spotsLeft !== null ? `<p style="font-size:12px;color:${isFull?'var(--danger)':'var(--success)'}">${isFull?'Event Full':spotsLeft+' spots left'}</p>` : ''}</div>
+                        </div>
+                        ${event.registrationDeadline ? `<div style="display:flex;gap:12px;align-items:flex-start">
+                            <div style="width:36px;height:36px;background:var(--primary-light);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--primary);flex-shrink:0"><i class="fas fa-clock"></i></div>
+                            <div><p style="font-size:12px;color:var(--gray-500)">Registration Deadline</p><p style="font-weight:600;font-size:14px">${formatDateTime(event.registrationDeadline)}</p></div>
+                        </div>` : ''}
+                        <div style="display:flex;gap:12px;align-items:flex-start">
+                            <div style="width:36px;height:36px;background:var(--primary-light);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--primary);flex-shrink:0"><i class="fas fa-tag"></i></div>
+                            <div><p style="font-size:12px;color:var(--gray-500)">Entry Fee</p><p style="font-weight:600;font-size:14px">${event.free||event.isFree ? 'Free' : '₹'+event.ticketPrice}</p></div>
+                        </div>
+                    </div>
+
+                    <div id="regArea">
+                        ${!isLoggedIn() ? `
+                            <a href="login.html" class="btn btn-primary btn-full"><i class="fas fa-sign-in-alt"></i> Login to Register</a>
+                        ` : isRegistered ? `
+                            <div class="alert alert-success"><i class="fas fa-check-circle"></i> You are registered!</div>
+                            <button class="btn btn-primary btn-full" onclick="showQrCode()" style="margin-bottom:8px"><i class="fas fa-qrcode"></i> View QR Ticket</button>
+                            <button class="btn btn-danger btn-full btn-sm" onclick="handleUnregister()"><i class="fas fa-times"></i> Cancel Registration</button>
+                        ` : isFull ? `
+                            <button class="btn btn-full" disabled style="background:var(--gray-300);cursor:not-allowed"><i class="fas fa-ban"></i> Event Full</button>
+                        ` : deadlinePassed ? `
+                            <button class="btn btn-full" disabled style="background:var(--gray-300);cursor:not-allowed"><i class="fas fa-clock"></i> Registration Closed</button>
+                        ` : `
+                            <button class="btn btn-primary btn-full" onclick="handleRegister()" id="regBtn" style="margin-bottom:8px"><i class="fas fa-calendar-plus"></i> Register Now</button>
+                            <p style="font-size:12px;color:var(--gray-500);text-align:center">You'll receive a QR ticket via email</p>
+                        `}
+                    </div>
+                </div>
+            </div>
+        </div>`;
+}
+
+async function handleRegister() {
+    const btn = document.getElementById('regBtn');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<div class="spinner" style="width:18px;height:18px;border-width:2px"></div> Registering...'; }
+    try {
+        const res = await API.registerEvent(eventId);
+        if (res.ticketNumber) {
+            registrationData = res;
+            showToast('🎉 Registered successfully! Check your email for ticket.', 'success');
+            setTimeout(() => loadEventDetail(), 1500);
+        } else {
+            showToast(res.message || 'Registration failed', 'error');
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-calendar-plus"></i> Register Now'; }
+        }
+    } catch(e) { showToast('Error registering. Please try again.', 'error'); }
+}
+
+async function handleUnregister() {
+    if (!confirm('Cancel your registration for this event?')) return;
+    const res = await API.unregisterEvent(eventId);
+    showToast(res.message || 'Unregistered', 'success');
+    setTimeout(() => loadEventDetail(), 1000);
+}
+
+function showQrCode() {
+    if (!registrationData) return;
+    document.getElementById('modalEventTitle').textContent = currentEvent.title;
+    document.getElementById('modalTicketNum').textContent = registrationData.ticketNumber || '';
+    const img = document.getElementById('qrImage');
+    if (registrationData.qrCode) img.src = registrationData.qrCode;
+    document.getElementById('qrModal').classList.remove('hidden');
+}
+function closeQrModal() { document.getElementById('qrModal').classList.add('hidden'); }
+
+function initMap() {
+    const lat = currentEvent.venue?.latitude || currentEvent.latitude;
+    const lng = currentEvent.venue?.longitude || currentEvent.longitude;
+    if (!lat || !lng) return;
+    const map = L.map('eventMap').setView([lat, lng], 16);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
+    L.marker([lat, lng]).addTo(map).bindPopup(`<b>${currentEvent.venue?.name || currentEvent.title}</b>`).openPopup();
+}
+
+function openFeedback() { document.getElementById('feedbackModal').classList.remove('hidden'); }
+function closeFeedback() { document.getElementById('feedbackModal').classList.add('hidden'); }
+function setRating(r) {
+    selectedRating = r;
+    document.querySelectorAll('#feedbackModal .star').forEach((s, i) => s.classList.toggle('active', i < r));
+}
+async function submitFeedback() {
+    if (!selectedRating) { showAlert('Please select a rating', 'error', 'feedbackAlert'); return; }
+    const comment = document.getElementById('feedbackComment').value;
+    const res = await API.submitFeedback(eventId, { rating: selectedRating, comment });
+    showAlert(res.message || 'Feedback submitted!', 'success', 'feedbackAlert');
+    setTimeout(() => closeFeedback(), 1500);
+}
+</script>
+</body>
+</html>

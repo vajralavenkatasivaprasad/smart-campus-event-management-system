@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Venues - Smart Campus EMS</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+</head>
+<body>
+<nav class="navbar" id="navbar">
+    <div class="nav-container">
+        <div class="nav-brand"><a href="../index.html"><i class="fas fa-graduation-cap"></i> Smart Campus EMS</a></div>
+        <ul class="nav-links" id="navLinks">
+            <li><a href="../index.html">Home</a></li><li><a href="events.html">Events</a></li>
+            <li><a href="venues.html" class="active">Venues</a></li><li><a href="announcements.html">Announcements</a></li>
+        </ul>
+        <div class="nav-actions">
+            <div id="authButtons"><a href="login.html" class="btn btn-outline">Login</a><a href="register.html" class="btn btn-primary">Register</a></div>
+            <div id="userMenu" class="user-menu hidden"><div class="user-avatar" id="userAvatar"></div><div class="dropdown-menu"><a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a><hr><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a></div></div>
+            <div class="notification-bell hidden" id="notifBell" onclick="toggleNotifications()"><i class="fas fa-bell"></i><span class="notif-badge" id="notifCount">0</span></div>
+        </div>
+    </div>
+</nav>
+<div style="padding-top:65px">
+    <div style="background:linear-gradient(135deg,var(--primary),var(--secondary));padding:50px 20px;text-align:center;color:white">
+        <h1 style="font-size:42px;font-weight:800;margin-bottom:10px">Campus Venues</h1>
+        <p style="opacity:0.9;font-size:18px">Explore all event venues on campus with interactive maps</p>
+    </div>
+    <div class="container" style="padding:40px 20px 60px">
+        <div style="height:400px;border-radius:16px;overflow:hidden;margin-bottom:40px;box-shadow:var(--shadow-lg)">
+            <div id="venueMap" style="height:100%"></div>
+        </div>
+        <h2 style="margin-bottom:24px">All Venues</h2>
+        <div id="venuesList" style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px">
+            <div class="loading-spinner" style="grid-column:1/-1"><div class="spinner"></div></div>
+        </div>
+    </div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="../js/api.js"></script><script src="../js/auth.js"></script>
+<script>
+let map;
+document.addEventListener('DOMContentLoaded', async () => {
+    map = L.map('venueMap').setView([9.9252, 78.1198], 16);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(map);
+    try {
+        const venues = await API.getVenues();
+        renderVenues(venues);
+        venues.forEach(v => {
+            if (v.latitude && v.longitude) {
+                L.marker([v.latitude, v.longitude]).addTo(map)
+                    .bindPopup(`<b>${v.name}</b><br>${v.location}<br>Capacity: ${v.capacity}`);
+            }
+        });
+    } catch(e) { document.getElementById('venuesList').innerHTML='<p style="color:var(--danger)">Could not load venues.</p>'; }
+});
+function renderVenues(venues) {
+    const el = document.getElementById('venuesList');
+    if (!venues || venues.length===0) { el.innerHTML='<p class="empty-state">No venues found</p>'; return; }
+    el.innerHTML = venues.map(v=>`
+        <div class="card" style="cursor:pointer" onclick="focusVenue(${v.latitude},${v.longitude},'${v.name}')">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+                <div style="width:48px;height:48px;background:var(--primary-light);border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--primary);font-size:20px"><i class="fas fa-building"></i></div>
+                <div><h3 style="font-size:16px">${v.name}</h3><span class="badge ${v.available||v.isAvailable?'badge-success':'badge-danger'}">${v.available||v.isAvailable?'Available':'Unavailable'}</span></div>
+            </div>
+            <p style="color:var(--gray-500);font-size:13px;margin-bottom:10px">${v.description||''}</p>
+            <div style="display:flex;gap:16px;font-size:13px;color:var(--gray-700)">
+                <span><i class="fas fa-users" style="color:var(--primary)"></i> ${v.capacity} capacity</span>
+                <span><i class="fas fa-map-marker-alt" style="color:var(--primary)"></i> ${v.location||'Campus'}</span>
+            </div>
+            ${v.amenities?`<div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px">${v.amenities.split(',').map(a=>`<span class="badge badge-primary">${a.trim()}</span>`).join('')}</div>`:''}
+        </div>`).join('');
+}
+function focusVenue(lat, lng, name) {
+    if (!lat||!lng) return;
+    map.setView([lat,lng],18);
+    document.querySelector('#venueMap').scrollIntoView({behavior:'smooth'});
+}
+</script>
+</body>
+</html>

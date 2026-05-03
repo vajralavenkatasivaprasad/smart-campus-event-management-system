@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Smart Campus EMS</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<div class="auth-page">
+    <div class="auth-left">
+        <div style="margin-bottom:40px">
+            <a href="../index.html" style="color:rgba(255,255,255,0.8);display:flex;align-items:center;gap:8px;font-size:20px;font-weight:700">
+                <i class="fas fa-graduation-cap"></i> Smart Campus EMS
+            </a>
+        </div>
+        <h2>Join Your Campus Community! 🎓</h2>
+        <p style="opacity:0.85;line-height:1.8;margin-bottom:30px">Create an account to discover and register for all campus events. It's completely free!</p>
+        <div style="display:flex;flex-direction:column;gap:16px">
+            <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.1);padding:14px;border-radius:10px">
+                <i class="fas fa-shield-alt" style="font-size:20px"></i>
+                <span>Secure OTP email verification</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.1);padding:14px;border-radius:10px">
+                <i class="fas fa-users" style="font-size:20px"></i>
+                <span>Join 500+ campus members</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.1);padding:14px;border-radius:10px">
+                <i class="fas fa-star" style="font-size:20px"></i>
+                <span>Exclusive event access</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="auth-right">
+        <!-- Step 1: Registration Form -->
+        <div class="auth-form" id="step1">
+            <h2>Create Account</h2>
+            <p>Fill in your details to get started</p>
+            <div id="alertContainer"></div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Full Name *</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="name" placeholder="Your full name" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-phone"></i>
+                        <input type="tel" id="phone" placeholder="+91 XXXXX XXXXX">
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Email Address *</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="email" placeholder="you@campus.edu" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Password *</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" placeholder="Min. 6 characters" required>
+                    <i class="fas fa-eye password-toggle" onclick="togglePass('password')"></i>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Confirm Password *</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="confirmPassword" placeholder="Repeat your password" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Role</label>
+                <select id="role">
+                    <option value="STUDENT">Student</option>
+                    <option value="FACULTY">Faculty</option>
+                    <option value="STAFF">Staff</option>
+                </select>
+            </div>
+
+            <button class="btn btn-primary btn-full" onclick="handleRegister()" id="registerBtn">
+                <i class="fas fa-user-plus"></i> Create Account
+            </button>
+            <div class="auth-link">Already have an account? <a href="login.html">Sign in →</a></div>
+        </div>
+
+        <!-- Step 2: OTP Verification -->
+        <div class="auth-form hidden" id="step2">
+            <div style="text-align:center;margin-bottom:20px">
+                <div style="width:72px;height:72px;background:var(--primary-light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:32px;color:var(--primary)">
+                    <i class="fas fa-envelope-open-text"></i>
+                </div>
+                <h2>Verify Your Email</h2>
+                <p>We sent a 6-digit OTP to <strong id="sentEmail"></strong></p>
+            </div>
+            <div id="alertContainer2"></div>
+
+            <div class="otp-inputs" id="otpInputs">
+                <input type="text" maxlength="1" oninput="moveNext(this,1)" onkeydown="movePrev(event,0)">
+                <input type="text" maxlength="1" oninput="moveNext(this,2)" onkeydown="movePrev(event,1)">
+                <input type="text" maxlength="1" oninput="moveNext(this,3)" onkeydown="movePrev(event,2)">
+                <input type="text" maxlength="1" oninput="moveNext(this,4)" onkeydown="movePrev(event,3)">
+                <input type="text" maxlength="1" oninput="moveNext(this,5)" onkeydown="movePrev(event,4)">
+                <input type="text" maxlength="1" onkeydown="movePrev(event,5)">
+            </div>
+
+            <button class="btn btn-primary btn-full" onclick="handleVerifyOtp()" id="verifyBtn">
+                <i class="fas fa-check-circle"></i> Verify OTP
+            </button>
+
+            <div style="text-align:center;margin-top:16px">
+                <p style="font-size:14px;color:var(--gray-500)">Didn't receive OTP? 
+                    <a href="#" onclick="resendOtp()" style="color:var(--primary);font-weight:600" id="resendLink">Resend OTP</a>
+                </p>
+                <p style="font-size:12px;color:var(--gray-500);margin-top:8px">OTP expires in <span id="countdown" style="color:var(--danger);font-weight:700">10:00</span></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script>
+    let regEmail = '';
+    let countdownTimer;
+
+    async function handleRegister() {
+        const name = document.getElementById('name').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const confirm = document.getElementById('confirmPassword').value;
+        const phone = document.getElementById('phone').value.trim();
+        const role = document.getElementById('role').value;
+
+        if (!name || !email || !password) { showAlert('Please fill all required fields', 'error'); return; }
+        if (password !== confirm) { showAlert('Passwords do not match', 'error'); return; }
+        if (password.length < 6) { showAlert('Password must be at least 6 characters', 'error'); return; }
+
+        const btn = document.getElementById('registerBtn');
+        btn.disabled = true; btn.innerHTML = '<div class="spinner" style="width:20px;height:20px;border-width:2px"></div> Creating...';
+        try {
+            const res = await API.register({ name, email, password, phone, role });
+            if (res.message && res.message.includes('successful')) {
+                regEmail = email;
+                document.getElementById('step1').classList.add('hidden');
+                document.getElementById('step2').classList.remove('hidden');
+                document.getElementById('sentEmail').textContent = email;
+                startCountdown(600);
+            } else {
+                showAlert(res.message || 'Registration failed', 'error');
+                btn.disabled = false; btn.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
+            }
+        } catch(e) {
+            showAlert('Connection error. Please check backend.', 'error');
+            btn.disabled = false; btn.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
+        }
+    }
+
+    async function handleVerifyOtp() {
+        const inputs = document.querySelectorAll('.otp-inputs input');
+        const otp = Array.from(inputs).map(i => i.value).join('');
+        if (otp.length !== 6) { showAlert('Please enter the 6-digit OTP', 'error', 'alertContainer2'); return; }
+
+        const btn = document.getElementById('verifyBtn');
+        btn.disabled = true; btn.innerHTML = '<div class="spinner" style="width:20px;height:20px;border-width:2px"></div> Verifying...';
+        try {
+            const res = await API.verifyOtp({ email: regEmail, otp });
+            if (res.token) {
+                setAuth(res.token, res.user);
+                clearInterval(countdownTimer);
+                showAlert('Email verified! Welcome to Campus EMS! 🎉', 'success', 'alertContainer2');
+                setTimeout(() => window.location.href = '../pages/dashboard.html', 1500);
+            } else {
+                showAlert(res.message || 'Invalid OTP', 'error', 'alertContainer2');
+                btn.disabled = false; btn.innerHTML = '<i class="fas fa-check-circle"></i> Verify OTP';
+            }
+        } catch(e) {
+            showAlert('Connection error', 'error', 'alertContainer2');
+            btn.disabled = false; btn.innerHTML = '<i class="fas fa-check-circle"></i> Verify OTP';
+        }
+    }
+
+    async function resendOtp() {
+        try {
+            await API.resendOtp({ email: regEmail });
+            showAlert('OTP resent! Check your email.', 'success', 'alertContainer2');
+            startCountdown(600);
+        } catch(e) { showAlert('Could not resend OTP', 'error', 'alertContainer2'); }
+    }
+
+    function moveNext(el, nextIdx) {
+        if (el.value.length === 1) {
+            const inputs = document.querySelectorAll('.otp-inputs input');
+            if (nextIdx < inputs.length) inputs[nextIdx].focus();
+        }
+    }
+    function movePrev(e, prevIdx) {
+        if (e.key === 'Backspace') {
+            const inputs = document.querySelectorAll('.otp-inputs input');
+            if (!inputs[prevIdx + 1].value && prevIdx >= 0) inputs[prevIdx].focus();
+        }
+    }
+
+    function startCountdown(seconds) {
+        clearInterval(countdownTimer);
+        let s = seconds;
+        countdownTimer = setInterval(() => {
+            s--;
+            const m = Math.floor(s / 60), sec = s % 60;
+            const el = document.getElementById('countdown');
+            if (el) el.textContent = `${m}:${sec.toString().padStart(2,'0')}`;
+            if (s <= 0) { clearInterval(countdownTimer); if (el) el.textContent = 'Expired'; }
+        }, 1000);
+    }
+
+    function togglePass(id) { const i = document.getElementById(id); i.type = i.type === 'password' ? 'text' : 'password'; }
+</script>
+</body>
+</html>

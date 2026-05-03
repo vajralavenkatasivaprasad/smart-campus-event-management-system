@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Campus EMS</title>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-graduation-cap"></i>
+                <span>Smart Campus EMS</span>
+            </div>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="index.html" class="active">Home</a></li>
+                <li><a href="pages/events.html">Events</a></li>
+                <li><a href="pages/venues.html">Venues</a></li>
+                <li><a href="pages/announcements.html">Announcements</a></li>
+                <li><a href="pages/about.html">About</a></li>
+            </ul>
+            <div class="nav-actions">
+                <div id="authButtons">
+                    <a href="pages/login.html" class="btn btn-outline">Login</a>
+                    <a href="pages/register.html" class="btn btn-primary">Register</a>
+                </div>
+                <div id="userMenu" class="user-menu hidden">
+                    <div class="user-avatar" id="userAvatar"></div>
+                    <div class="dropdown-menu" id="dropdownMenu">
+                        <a href="pages/dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                        <a href="pages/my-events.html"><i class="fas fa-calendar-check"></i> My Events</a>
+                        <a href="pages/profile.html"><i class="fas fa-user"></i> Profile</a>
+                        <hr>
+                        <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    </div>
+                </div>
+                <div class="notification-bell hidden" id="notifBell" onclick="toggleNotifications()">
+                    <i class="fas fa-bell"></i>
+                    <span class="notif-badge" id="notifCount">0</span>
+                </div>
+                <button class="nav-toggle" id="navToggle"><i class="fas fa-bars"></i></button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-particles" id="particles"></div>
+        <div class="hero-content">
+            <div class="hero-badge">🎓 Smart Campus Event Management</div>
+            <h1>Discover, Register & <br><span class="gradient-text">Manage Campus Events</span></h1>
+            <p>Your one-stop platform for all campus events – from tech fests to cultural nights, workshops to seminars. Never miss an event again!</p>
+            <div class="hero-actions">
+                <a href="pages/events.html" class="btn btn-primary btn-lg">
+                    <i class="fas fa-calendar-alt"></i> Explore Events
+                </a>
+                <a href="pages/register.html" class="btn btn-outline btn-lg">
+                    <i class="fas fa-user-plus"></i> Get Started
+                </a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat"><span id="statEvents">50+</span><label>Events</label></div>
+                <div class="stat"><span id="statUsers">500+</span><label>Students</label></div>
+                <div class="stat"><span id="statVenues">10+</span><label>Venues</label></div>
+            </div>
+        </div>
+        <div class="hero-image">
+            <div class="floating-card card-1"><i class="fas fa-calendar-check"></i> Event Registered!</div>
+            <div class="floating-card card-2"><i class="fas fa-qrcode"></i> QR Ticket Ready</div>
+            <div class="floating-card card-3"><i class="fas fa-map-marker-alt"></i> Find Venues</div>
+            <div class="hero-illustration">
+                <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="200" cy="200" r="180" fill="rgba(108,99,255,0.1)" stroke="rgba(108,99,255,0.3)" stroke-width="2"/>
+                    <circle cx="200" cy="200" r="140" fill="rgba(108,99,255,0.08)" stroke="rgba(108,99,255,0.2)" stroke-width="1"/>
+                    <rect x="100" y="130" width="200" height="150" rx="15" fill="white" filter="url(#shadow)"/>
+                    <rect x="100" y="130" width="200" height="50" rx="15" fill="#6c63ff"/>
+                    <rect x="100" y="165" width="200" height="15" fill="#6c63ff"/>
+                    <text x="200" y="165" text-anchor="middle" fill="white" font-size="16" font-weight="bold">Tech Fest 2025</text>
+                    <rect x="120" y="200" width="80" height="10" rx="5" fill="#eee"/>
+                    <rect x="120" y="220" width="120" height="10" rx="5" fill="#eee"/>
+                    <rect x="120" y="240" width="60" height="10" rx="5" fill="#eee"/>
+                    <rect x="260" y="200" width="30" height="30" rx="5" fill="#6c63ff" opacity="0.3"/>
+                    <defs><filter id="shadow"><feDropShadow dx="0" dy="4" stdDeviation="8" flood-opacity="0.1"/></filter></defs>
+                </svg>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Everything You Need</h2>
+                <p>A complete event management ecosystem for your campus</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-calendar-alt"></i></div>
+                    <h3>Event Discovery</h3>
+                    <p>Browse and search events by category, date, or keyword. Stay updated with real-time event listings.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-qrcode"></i></div>
+                    <h3>QR Ticketing</h3>
+                    <p>Get instant QR code tickets upon registration. Quick check-in at event venues.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-map-marked-alt"></i></div>
+                    <h3>Interactive Maps</h3>
+                    <p>Find event venues on an interactive map. Get directions and explore campus locations.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-robot"></i></div>
+                    <h3>AI Chatbot</h3>
+                    <p>Get instant answers about events, registrations, and campus activities from our smart assistant.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+                    <h3>OTP Verification</h3>
+                    <p>Secure registration with email OTP verification. Your account is always protected.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-bell"></i></div>
+                    <h3>Smart Notifications</h3>
+                    <p>Never miss an event with real-time notifications for registrations, reminders, and announcements.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Upcoming Events Preview -->
+    <section class="upcoming-events section bg-light">
+        <div class="container">
+            <div class="section-header">
+                <h2>Upcoming Events</h2>
+                <a href="pages/events.html" class="btn btn-outline">View All <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="events-grid" id="upcomingEvents">
+                <div class="loading-spinner"><div class="spinner"></div></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Categories -->
+    <section class="categories section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Browse by Category</h2>
+            </div>
+            <div class="categories-grid">
+                <a href="pages/events.html?category=ACADEMIC" class="category-card academic">
+                    <i class="fas fa-book-open"></i><span>Academic</span>
+                </a>
+                <a href="pages/events.html?category=CULTURAL" class="category-card cultural">
+                    <i class="fas fa-music"></i><span>Cultural</span>
+                </a>
+                <a href="pages/events.html?category=SPORTS" class="category-card sports">
+                    <i class="fas fa-running"></i><span>Sports</span>
+                </a>
+                <a href="pages/events.html?category=WORKSHOP" class="category-card workshop">
+                    <i class="fas fa-tools"></i><span>Workshop</span>
+                </a>
+                <a href="pages/events.html?category=SEMINAR" class="category-card seminar">
+                    <i class="fas fa-chalkboard-teacher"></i><span>Seminar</span>
+                </a>
+                <a href="pages/events.html?category=CONFERENCE" class="category-card conference">
+                    <i class="fas fa-handshake"></i><span>Conference</span>
+                </a>
+                <a href="pages/events.html?category=SOCIAL" class="category-card social">
+                    <i class="fas fa-users"></i><span>Social</span>
+                </a>
+                <a href="pages/events.html" class="category-card other">
+                    <i class="fas fa-ellipsis-h"></i><span>All Events</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <h3><i class="fas fa-graduation-cap"></i> Smart Campus EMS</h3>
+                    <p>Making campus events smarter, more accessible, and more enjoyable for everyone.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="pages/events.html">Events</a></li>
+                        <li><a href="pages/venues.html">Venues</a></li>
+                        <li><a href="pages/announcements.html">Announcements</a></li>
+                        <li><a href="pages/about.html">About</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Account</h4>
+                    <ul>
+                        <li><a href="pages/login.html">Login</a></li>
+                        <li><a href="pages/register.html">Register</a></li>
+                        <li><a href="pages/dashboard.html">Dashboard</a></li>
+                    </ul>
+                </div>
+                <div class="footer-contact">
+                    <h4>Contact</h4>
+                    <p><i class="fas fa-envelope"></i> support@campus.edu</p>
+                    <p><i class="fas fa-phone"></i> +91-XXX-XXX-XXXX</p>
+                    <p><i class="fas fa-map-marker-alt"></i> Campus Road, City - 600001</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Smart Campus EMS. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Chatbot -->
+    <div class="chatbot-container" id="chatbotContainer">
+        <div class="chatbot-header">
+            <div class="chatbot-title">
+                <div class="chatbot-avatar"><i class="fas fa-robot"></i></div>
+                <div>
+                    <strong>Campus Assistant</strong>
+                    <small>Always here to help</small>
+                </div>
+            </div>
+            <button onclick="toggleChatbot()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="chatbot-messages" id="chatbotMessages">
+            <div class="bot-message">
+                <div class="bot-bubble">👋 Hi! I'm your Campus Assistant. Ask me about events, registrations, venues, or anything about campus!</div>
+            </div>
+        </div>
+        <div class="chatbot-input">
+            <input type="text" id="chatInput" placeholder="Type your message..." onkeypress="handleChatKey(event)">
+            <button onclick="sendChatMessage()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+    <button class="chatbot-toggle" id="chatbotToggle" onclick="toggleChatbot()">
+        <i class="fas fa-robot"></i>
+        <span class="chat-badge">1</span>
+    </button>
+
+    <!-- Notification Panel -->
+    <div class="notif-panel hidden" id="notifPanel">
+        <div class="notif-header">
+            <h4>Notifications</h4>
+            <button onclick="toggleNotifications()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="notif-list" id="notifList">
+            <p class="empty-state">No notifications</p>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/chatbot.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

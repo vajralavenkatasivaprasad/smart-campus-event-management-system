@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Smart Campus EMS</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<div class="dashboard">
+    <aside class="sidebar">
+        <div class="sidebar-logo"><i class="fas fa-graduation-cap"></i> Admin Panel</div>
+        <ul class="sidebar-menu">
+            <li><a href="admin.html" class="active"><i class="fas fa-tachometer-alt"></i> Overview</a></li>
+            <li><a href="#" onclick="showSection('events')"><i class="fas fa-calendar-alt"></i> Manage Events</a></li>
+            <li><a href="#" onclick="showSection('users')"><i class="fas fa-users"></i> Manage Users</a></li>
+            <li><a href="#" onclick="showSection('venues')"><i class="fas fa-building"></i> Manage Venues</a></li>
+            <li><a href="#" onclick="showSection('announcements')"><i class="fas fa-bullhorn"></i> Announcements</a></li>
+            <li style="margin-top:20px"><a href="dashboard.html"><i class="fas fa-home"></i> User Dashboard</a></li>
+            <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        </ul>
+    </aside>
+    <main class="main-content">
+        <div class="page-header">
+            <h1>Admin Dashboard</h1>
+            <span class="badge badge-danger" style="padding:8px 14px;font-size:13px"><i class="fas fa-shield-alt"></i> Administrator</span>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid" id="adminStats">
+            <div class="stat-card purple"><div class="stat-icon"><i class="fas fa-users"></i></div><div class="stat-info"><h3 id="s-users">-</h3><p>Total Users</p></div></div>
+            <div class="stat-card green"><div class="stat-icon"><i class="fas fa-calendar-alt"></i></div><div class="stat-info"><h3 id="s-events">-</h3><p>Total Events</p></div></div>
+            <div class="stat-card orange"><div class="stat-icon"><i class="fas fa-ticket-alt"></i></div><div class="stat-info"><h3 id="s-regs">-</h3><p>Registrations</p></div></div>
+            <div class="stat-card red"><div class="stat-icon"><i class="fas fa-building"></i></div><div class="stat-info"><h3 id="s-venues">-</h3><p>Venues</p></div></div>
+        </div>
+
+        <!-- Section: Events -->
+        <div class="card" id="section-events">
+            <div class="card-header">
+                <h3><i class="fas fa-calendar-alt" style="color:var(--primary)"></i> All Events</h3>
+                <div style="display:flex;gap:8px">
+                    <button class="btn btn-primary btn-sm" onclick="showCreateEventModal()"><i class="fas fa-plus"></i> New Event</button>
+                </div>
+            </div>
+            <div id="adminEventsList"><div class="loading-spinner"><div class="spinner"></div></div></div>
+        </div>
+
+        <!-- Section: Users -->
+        <div class="card" id="section-users" style="margin-top:24px;display:none">
+            <div class="card-header"><h3><i class="fas fa-users" style="color:var(--primary)"></i> All Users</h3></div>
+            <div id="adminUsersList"><div class="loading-spinner"><div class="spinner"></div></div></div>
+        </div>
+
+        <!-- Section: Announcements -->
+        <div class="card" id="section-announcements" style="margin-top:24px;display:none">
+            <div class="card-header">
+                <h3><i class="fas fa-bullhorn" style="color:var(--primary)"></i> Announcements</h3>
+                <button class="btn btn-primary btn-sm" onclick="showAnnouncementModal()"><i class="fas fa-plus"></i> New</button>
+            </div>
+            <div id="adminAnnList"><div class="loading-spinner"><div class="spinner"></div></div></div>
+        </div>
+    </main>
+</div>
+
+<!-- Create Event Modal -->
+<div id="createEventModal" class="modal-overlay hidden">
+    <div class="modal" style="max-width:600px">
+        <div class="modal-header"><h3>Create New Event</h3><button class="modal-close" onclick="closeModal('createEventModal')"><i class="fas fa-times"></i></button></div>
+        <div id="createEventAlert"></div>
+        <div class="form-row">
+            <div class="form-group"><label>Title *</label><input type="text" id="ev-title" placeholder="Event title"></div>
+            <div class="form-group"><label>Category</label>
+                <select id="ev-category"><option value="ACADEMIC">Academic</option><option value="CULTURAL">Cultural</option><option value="SPORTS">Sports</option><option value="WORKSHOP">Workshop</option><option value="SEMINAR">Seminar</option><option value="CONFERENCE">Conference</option><option value="SOCIAL">Social</option></select>
+            </div>
+        </div>
+        <div class="form-group"><label>Description</label><textarea id="ev-desc" rows="3" style="width:100%;padding:10px;border:2px solid var(--gray-300);border-radius:8px"></textarea></div>
+        <div class="form-row">
+            <div class="form-group"><label>Start Date & Time *</label><input type="datetime-local" id="ev-start"></div>
+            <div class="form-group"><label>End Date & Time *</label><input type="datetime-local" id="ev-end"></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group"><label>Registration Deadline</label><input type="datetime-local" id="ev-deadline"></div>
+            <div class="form-group"><label>Max Attendees</label><input type="number" id="ev-max" placeholder="Leave empty for unlimited"></div>
+        </div>
+        <div class="form-group"><label>Location Name</label><input type="text" id="ev-location" placeholder="e.g. Main Auditorium, Block A"></div>
+        <div class="form-group"><label><input type="checkbox" id="ev-free" checked> Free Event</label></div>
+        <button class="btn btn-primary btn-full" onclick="createEvent()"><i class="fas fa-plus"></i> Create Event</button>
+    </div>
+</div>
+
+<!-- Announcement Modal -->
+<div id="annModal" class="modal-overlay hidden">
+    <div class="modal">
+        <div class="modal-header"><h3>New Announcement</h3><button class="modal-close" onclick="closeModal('annModal')"><i class="fas fa-times"></i></button></div>
+        <div id="annAlert"></div>
+        <div class="form-group"><label>Title *</label><input type="text" id="ann-title" placeholder="Announcement title"></div>
+        <div class="form-group"><label>Content *</label><textarea id="ann-content" rows="4" style="width:100%;padding:10px;border:2px solid var(--gray-300);border-radius:8px"></textarea></div>
+        <div class="form-row">
+            <div class="form-group"><label>Target Role</label>
+                <select id="ann-role"><option value="ALL">All</option><option value="STUDENT">Students</option><option value="FACULTY">Faculty</option><option value="STAFF">Staff</option></select>
+            </div>
+            <div class="form-group"><label><br><input type="checkbox" id="ann-pin"> Pin this announcement</label></div>
+        </div>
+        <button class="btn btn-primary btn-full" onclick="createAnnouncement()"><i class="fas fa-paper-plane"></i> Post Announcement</button>
+    </div>
+</div>
+
+<script src="../js/api.js"></script><script src="../js/auth.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    const user = getUser();
+    if (!isLoggedIn() || user?.role !== 'ADMIN') { window.location.href='login.html'; return; }
+    loadAdminData();
+});
+
+async function loadAdminData() {
+    try {
+        const [stats, events, users, announcements] = await Promise.all([
+            API.getDashboardStats(), API.getEvents({size:100}), API.getAllUsers(), API.getAnnouncements()
+        ]);
+        document.getElementById('s-users').textContent = stats?.totalUsers||0;
+        document.getElementById('s-events').textContent = stats?.totalEvents||0;
+        document.getElementById('s-regs').textContent = stats?.totalRegistrations||0;
+        document.getElementById('s-venues').textContent = stats?.totalVenues||0;
+
+        // Events
+        const evEl = document.getElementById('adminEventsList');
+        evEl.innerHTML = `<div class="table-container"><table>
+            <thead><tr><th>Title</th><th>Category</th><th>Date</th><th>Attendees</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>${(events?.events||[]).map(e=>`<tr>
+                <td><strong>${e.title}</strong></td><td>${e.category}</td><td>${formatDate(e.startDate)}</td>
+                <td>${e.currentAttendees||0}${e.maxAttendees?'/'+e.maxAttendees:''}</td>
+                <td><select onchange="updateStatus(${e.id},this.value)" class="badge" style="border:none;background:transparent;font-weight:700;cursor:pointer">
+                    ${['DRAFT','PUBLISHED','CANCELLED','COMPLETED'].map(s=>`<option ${s===e.status?'selected':''} value="${s}">${s}</option>`).join('')}
+                </select></td>
+                <td style="display:flex;gap:4px">
+                    <a href="event-detail.html?id=${e.id}" class="btn btn-outline btn-sm"><i class="fas fa-eye"></i></a>
+                    <button class="btn btn-danger btn-sm" onclick="deleteEvent(${e.id})"><i class="fas fa-trash"></i></button>
+                </td>
+            </tr>`).join('')}</tbody>
+        </table></div>`;
+
+        // Users
+        const usEl = document.getElementById('adminUsersList');
+        usEl.innerHTML = `<div class="table-container"><table>
+            <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Verified</th><th>Joined</th><th>Actions</th></tr></thead>
+            <tbody>${(users||[]).map(u=>`<tr>
+                <td><strong>${u.name}</strong></td><td>${u.email}</td>
+                <td><span class="badge badge-primary">${u.role}</span></td>
+                <td>${u.verified||u.isVerified?'<span class="badge badge-success">Yes</span>':'<span class="badge badge-gray">No</span>'}</td>
+                <td>${formatDate(u.createdAt)}</td>
+                <td><button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id})"><i class="fas fa-trash"></i></button></td>
+            </tr>`).join('')}</tbody>
+        </table></div>`;
+
+        // Announcements
+        const anEl = document.getElementById('adminAnnList');
+        anEl.innerHTML = `<div class="table-container"><table>
+            <thead><tr><th>Title</th><th>Target</th><th>Date</th><th>Actions</th></tr></thead>
+            <tbody>${(announcements||[]).map(a=>`<tr>
+                <td><strong>${a.title}</strong></td><td><span class="badge badge-primary">${a.targetRole}</span></td>
+                <td>${formatDate(a.createdAt)}</td>
+                <td><button class="btn btn-danger btn-sm" onclick="deleteAnnouncement(${a.id})"><i class="fas fa-trash"></i></button></td>
+            </tr>`).join('')}</tbody>
+        </table></div>`;
+    } catch(e) { console.error(e); }
+}
+
+function showSection(s) {
+    ['events','users','announcements'].forEach(sec=>{
+        document.getElementById('section-'+sec).style.display = sec===s?'block':'none';
+    });
+}
+
+async function updateStatus(id, status) {
+    const res = await API.updateEventStatus(id, status);
+    showToast(res ? 'Status updated' : 'Error updating', res ? 'success' : 'error');
+}
+async function deleteEvent(id) {
+    if (!confirm('Delete this event?')) return;
+    await API.deleteEvent(id);
+    showToast('Event deleted', 'success');
+    loadAdminData();
+}
+async function deleteUser(id) {
+    if (!confirm('Delete this user?')) return;
+    await API.deleteUser(id);
+    showToast('User deleted', 'success');
+    loadAdminData();
+}
+async function deleteAnnouncement(id) {
+    if (!confirm('Delete this announcement?')) return;
+    await API.deleteAnnouncement(id);
+    showToast('Deleted', 'success');
+    loadAdminData();
+}
+function showCreateEventModal() { document.getElementById('createEventModal').classList.remove('hidden'); }
+function showAnnouncementModal() { document.getElementById('annModal').classList.remove('hidden'); }
+function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+async function createEvent() {
+    const data = {
+        title: document.getElementById('ev-title').value.trim(),
+        description: document.getElementById('ev-desc').value.trim(),
+        category: document.getElementById('ev-category').value,
+        startDate: document.getElementById('ev-start').value.replace('T',':00T').slice(0,16)+'',
+        endDate: document.getElementById('ev-end').value,
+        registrationDeadline: document.getElementById('ev-deadline').value || null,
+        maxAttendees: document.getElementById('ev-max').value ? parseInt(document.getElementById('ev-max').value) : null,
+        locationName: document.getElementById('ev-location').value,
+        isFree: document.getElementById('ev-free').checked
+    };
+    if (data.startDate) data.startDate = new Date(document.getElementById('ev-start').value).toISOString().slice(0,19);
+    if (data.endDate) data.endDate = new Date(document.getElementById('ev-end').value).toISOString().slice(0,19);
+    if (data.registrationDeadline) data.registrationDeadline = new Date(data.registrationDeadline).toISOString().slice(0,19);
+    if (!data.title || !data.startDate || !data.endDate) { showAlert('Please fill required fields', 'error', 'createEventAlert'); return; }
+    const res = await API.createEvent(data);
+    if (res.event) { closeModal('createEventModal'); showToast('Event created!', 'success'); loadAdminData(); }
+    else showAlert(res.message||'Error', 'error', 'createEventAlert');
+}
+
+async function createAnnouncement() {
+    const data = {
+        title: document.getElementById('ann-title').value.trim(),
+        content: document.getElementById('ann-content').value.trim(),
+        targetRole: document.getElementById('ann-role').value,
+        isPinned: document.getElementById('ann-pin').checked
+    };
+    if (!data.title||!data.content) { showAlert('Fill all fields', 'error', 'annAlert'); return; }
+    await API.createAnnouncement(data);
+    closeModal('annModal');
+    showToast('Announcement posted!', 'success');
+    loadAdminData();
+}
+</script>
+</body>
+</html>

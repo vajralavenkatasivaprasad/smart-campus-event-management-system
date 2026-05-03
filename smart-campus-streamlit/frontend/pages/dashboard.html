@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Smart Campus EMS</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<div class="dashboard">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-logo"><i class="fas fa-graduation-cap"></i> Campus EMS</div>
+        <ul class="sidebar-menu">
+            <li><a href="dashboard.html" class="active"><i class="fas fa-tachometer-alt"></i> Dashboard</a></li>
+            <li><a href="events.html"><i class="fas fa-calendar-alt"></i> Events</a></li>
+            <li><a href="my-events.html"><i class="fas fa-calendar-check"></i> My Events</a></li>
+            <li><a href="announcements.html"><i class="fas fa-bullhorn"></i> Announcements</a></li>
+            <li><a href="venues.html"><i class="fas fa-map-marker-alt"></i> Venues</a></li>
+            <li><a href="profile.html"><i class="fas fa-user"></i> Profile</a></li>
+            <li id="adminLink" style="display:none"><a href="admin.html"><i class="fas fa-shield-alt"></i> Admin Panel</a></li>
+            <li style="margin-top:auto"><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        </ul>
+    </aside>
+
+    <!-- Main -->
+    <main class="main-content">
+        <div class="page-header">
+            <div>
+                <h1>Welcome back, <span id="userName" style="color:var(--primary)">User</span>! 👋</h1>
+                <p style="color:var(--gray-500);margin-top:4px">Here's what's happening on campus today</p>
+            </div>
+            <a href="events.html" class="btn btn-primary"><i class="fas fa-plus"></i> Browse Events</a>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card purple"><div class="stat-icon"><i class="fas fa-calendar-alt"></i></div><div class="stat-info"><h3 id="totalEvents">-</h3><p>Total Events</p></div></div>
+            <div class="stat-card green"><div class="stat-icon"><i class="fas fa-calendar-check"></i></div><div class="stat-info"><h3 id="myEventsCount">-</h3><p>My Registrations</p></div></div>
+            <div class="stat-card orange"><div class="stat-icon"><i class="fas fa-bell"></i></div><div class="stat-info"><h3 id="notifCount2">-</h3><p>Notifications</p></div></div>
+            <div class="stat-card red"><div class="stat-icon"><i class="fas fa-bullhorn"></i></div><div class="stat-info"><h3 id="announceCount">-</h3><p>Announcements</p></div></div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:24px">
+            <!-- Upcoming Registered Events -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-calendar-check" style="color:var(--primary)"></i> My Upcoming Events</h3>
+                    <a href="my-events.html" class="btn btn-outline btn-sm">View All</a>
+                </div>
+                <div id="myEventsList"><div class="loading-spinner"><div class="spinner"></div></div></div>
+            </div>
+
+            <!-- Announcements -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-bullhorn" style="color:var(--primary)"></i> Announcements</h3>
+                    <a href="announcements.html" class="btn btn-outline btn-sm">All</a>
+                </div>
+                <div id="announcementsList"><div class="loading-spinner"><div class="spinner"></div></div></div>
+            </div>
+        </div>
+
+        <!-- Recommended Events -->
+        <div class="card" style="margin-top:24px">
+            <div class="card-header">
+                <h3><i class="fas fa-star" style="color:var(--accent)"></i> Recommended Events</h3>
+                <a href="events.html" class="btn btn-outline btn-sm">Browse All</a>
+            </div>
+            <div id="recommendedEvents" class="events-grid" style="margin-top:16px"></div>
+        </div>
+    </main>
+</div>
+
+<div class="chatbot-container" id="chatbotContainer">
+    <div class="chatbot-header">
+        <div class="chatbot-title"><div class="chatbot-avatar"><i class="fas fa-robot"></i></div><div><strong>Campus Assistant</strong></div></div>
+        <button onclick="toggleChatbot()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="chatbot-messages" id="chatbotMessages">
+        <div class="bot-message"><div class="bot-bubble">👋 Hi! I'm your Campus Assistant. How can I help you today?</div></div>
+    </div>
+    <div class="chatbot-input">
+        <input type="text" id="chatInput" placeholder="Ask me anything..." onkeypress="handleChatKey(event)">
+        <button onclick="sendChatMessage()"><i class="fas fa-paper-plane"></i></button>
+    </div>
+</div>
+<button class="chatbot-toggle" onclick="toggleChatbot()"><i class="fas fa-robot"></i></button>
+
+<script src="../js/api.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/chatbot.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    if (!isLoggedIn()) { window.location.href = 'login.html'; return; }
+    const user = getUser();
+    document.getElementById('userName').textContent = user?.name || 'User';
+    if (user?.role === 'ADMIN') document.getElementById('adminLink').style.display = 'block';
+    loadDashboardData();
+});
+
+async function loadDashboardData() {
+    try {
+        const [myEvents, events, announcements, notifs] = await Promise.all([
+            API.getMyEvents(),
+            API.getEvents({ size: 3 }),
+            API.getAnnouncements(),
+            API.getNotifications()
+        ]);
+
+        document.getElementById('myEventsCount').textContent = myEvents?.length || 0;
+        document.getElementById('totalEvents').textContent = events?.totalElements || 0;
+        document.getElementById('notifCount2').textContent = notifs?.filter(n => !n.read).length || 0;
+        document.getElementById('announceCount').textContent = announcements?.length || 0;
+
+        // My Events
+        const myEl = document.getElementById('myEventsList');
+        if (!myEvents || myEvents.length === 0) {
+            myEl.innerHTML = '<div class="empty-state"><i class="fas fa-calendar-times" style="font-size:36px;margin-bottom:10px;display:block"></i>No registrations yet.<br><a href="events.html" style="color:var(--primary)">Browse events</a></div>';
+        } else {
+            myEl.innerHTML = myEvents.slice(0,4).map(reg => `
+                <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--gray-300)" onclick="window.location.href='event-detail.html?id=${reg.event?.id}'" style="cursor:pointer">
+                    <div style="width:44px;height:44px;background:var(--primary-light);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--primary);flex-shrink:0"><i class="fas fa-calendar"></i></div>
+                    <div style="flex:1;min-width:0">
+                        <p style="font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${reg.event?.title || 'Event'}</p>
+                        <p style="font-size:12px;color:var(--gray-500)">${formatDate(reg.event?.startDate)}</p>
+                    </div>
+                    <span class="badge badge-success">${reg.registrationStatus}</span>
+                </div>`).join('');
+        }
+
+        // Announcements
+        const annEl = document.getElementById('announcementsList');
+        if (!announcements || announcements.length === 0) {
+            annEl.innerHTML = '<p class="empty-state">No announcements</p>';
+        } else {
+            annEl.innerHTML = announcements.slice(0,4).map(a => `
+                <div style="padding:12px 0;border-bottom:1px solid var(--gray-300)">
+                    <div style="display:flex;align-items:flex-start;gap:10px">
+                        ${a.pinned||a.isPinned ? '<i class="fas fa-thumbtack" style="color:var(--primary);margin-top:3px"></i>' : '<i class="fas fa-circle" style="font-size:8px;color:var(--gray-300);margin-top:6px"></i>'}
+                        <div>
+                            <p style="font-weight:600;font-size:14px">${a.title}</p>
+                            <p style="font-size:12px;color:var(--gray-500);line-height:1.6">${a.content.substring(0,80)}${a.content.length>80?'...':''}</p>
+                            <p style="font-size:11px;color:var(--gray-500);margin-top:4px">${formatDate(a.createdAt)}</p>
+                        </div>
+                    </div>
+                </div>`).join('');
+        }
+
+        // Recommended
+        const recEl = document.getElementById('recommendedEvents');
+        if (events?.events?.length) {
+            recEl.innerHTML = events.events.map(e => createEventCard(e)).join('');
+        } else {
+            recEl.innerHTML = '<p class="empty-state" style="grid-column:1/-1">No events available</p>';
+        }
+    } catch(e) {
+        console.error('Dashboard error:', e);
+    }
+}
+</script>
+</body>
+</html>

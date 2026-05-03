@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events - Smart Campus EMS</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+<nav class="navbar" id="navbar">
+    <div class="nav-container">
+        <div class="nav-brand"><a href="../index.html"><i class="fas fa-graduation-cap"></i> Smart Campus EMS</a></div>
+        <ul class="nav-links" id="navLinks">
+            <li><a href="../index.html">Home</a></li>
+            <li><a href="events.html" class="active">Events</a></li>
+            <li><a href="venues.html">Venues</a></li>
+            <li><a href="announcements.html">Announcements</a></li>
+        </ul>
+        <div class="nav-actions">
+            <div id="authButtons"><a href="login.html" class="btn btn-outline">Login</a><a href="register.html" class="btn btn-primary">Register</a></div>
+            <div id="userMenu" class="user-menu hidden">
+                <div class="user-avatar" id="userAvatar"></div>
+                <div class="dropdown-menu">
+                    <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                    <a href="my-events.html"><i class="fas fa-calendar-check"></i> My Events</a>
+                    <hr><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </div>
+            </div>
+            <div class="notification-bell hidden" id="notifBell" onclick="toggleNotifications()"><i class="fas fa-bell"></i><span class="notif-badge" id="notifCount">0</span></div>
+            <button class="nav-toggle" id="navToggle"><i class="fas fa-bars"></i></button>
+        </div>
+    </div>
+</nav>
+
+<div style="padding-top:65px">
+    <!-- Page Header -->
+    <div style="background:linear-gradient(135deg,var(--primary),var(--secondary));padding:50px 20px;text-align:center;color:white">
+        <h1 style="font-size:42px;font-weight:800;margin-bottom:10px">Campus Events</h1>
+        <p style="opacity:0.9;font-size:18px">Discover and register for events happening around campus</p>
+    </div>
+
+    <div class="container" style="padding-top:30px;padding-bottom:60px">
+        <!-- Search & Filter -->
+        <div class="search-bar">
+            <div class="input-with-icon" style="flex:2">
+                <i class="fas fa-search" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--gray-500)"></i>
+                <input type="text" id="searchInput" placeholder="Search events..." style="padding-left:42px;width:100%;border:none;padding:10px 14px 10px 42px;background:var(--gray-100);border-radius:8px;font-size:14px" oninput="debounceSearch()">
+            </div>
+            <select id="categoryFilter" onchange="loadEvents()" style="border:none;padding:10px 14px;background:var(--gray-100);border-radius:8px;font-size:14px;cursor:pointer">
+                <option value="">All Categories</option>
+                <option value="ACADEMIC">Academic</option>
+                <option value="CULTURAL">Cultural</option>
+                <option value="SPORTS">Sports</option>
+                <option value="WORKSHOP">Workshop</option>
+                <option value="SEMINAR">Seminar</option>
+                <option value="CONFERENCE">Conference</option>
+                <option value="SOCIAL">Social</option>
+            </select>
+            <select id="sortFilter" onchange="loadEvents()" style="border:none;padding:10px 14px;background:var(--gray-100);border-radius:8px;font-size:14px;cursor:pointer">
+                <option value="">Sort by Date</option>
+                <option value="free">Free Events</option>
+            </select>
+            <button class="btn btn-primary" onclick="loadEvents()"><i class="fas fa-search"></i> Search</button>
+        </div>
+
+        <!-- Results Count -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+            <p style="color:var(--gray-500);font-size:14px" id="resultCount">Loading events...</p>
+            <div style="display:flex;gap:8px">
+                <button onclick="setView('grid')" id="gridBtn" class="btn btn-primary btn-sm"><i class="fas fa-th-large"></i></button>
+                <button onclick="setView('list')" id="listBtn" class="btn btn-outline btn-sm"><i class="fas fa-list"></i></button>
+            </div>
+        </div>
+
+        <!-- Events Container -->
+        <div id="eventsContainer" class="events-grid">
+            <div class="loading-spinner" style="grid-column:1/-1"><div class="spinner"></div></div>
+        </div>
+
+        <!-- Pagination -->
+        <div id="pagination" style="display:flex;justify-content:center;gap:8px;margin-top:40px"></div>
+    </div>
+</div>
+
+<!-- Notification Panel -->
+<div class="notif-panel hidden" id="notifPanel">
+    <div class="notif-header"><h4>Notifications</h4><button onclick="toggleNotifications()"><i class="fas fa-times"></i></button></div>
+    <div class="notif-list" id="notifList"></div>
+</div>
+
+<!-- Chatbot -->
+<div class="chatbot-container" id="chatbotContainer">
+    <div class="chatbot-header">
+        <div class="chatbot-title"><div class="chatbot-avatar"><i class="fas fa-robot"></i></div><div><strong>Campus Assistant</strong><small>Ask me anything!</small></div></div>
+        <button onclick="toggleChatbot()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="chatbot-messages" id="chatbotMessages">
+        <div class="bot-message"><div class="bot-bubble">👋 Hi! I can help you find the perfect event. Ask me about categories, dates, or anything!</div></div>
+    </div>
+    <div class="chatbot-input">
+        <input type="text" id="chatInput" placeholder="Ask about events..." onkeypress="handleChatKey(event)">
+        <button onclick="sendChatMessage()"><i class="fas fa-paper-plane"></i></button>
+    </div>
+</div>
+<button class="chatbot-toggle" id="chatbotToggle" onclick="toggleChatbot()"><i class="fas fa-robot"></i></button>
+
+<script src="../js/api.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/chatbot.js"></script>
+<script>
+let currentPage = 0;
+let totalPages = 0;
+let searchTimeout;
+let currentView = 'grid';
+
+document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const cat = params.get('category');
+    if (cat) document.getElementById('categoryFilter').value = cat;
+    loadEvents();
+});
+
+async function loadEvents(page = 0) {
+    currentPage = page;
+    const search = document.getElementById('searchInput').value.trim();
+    const category = document.getElementById('categoryFilter').value;
+    const container = document.getElementById('eventsContainer');
+    container.innerHTML = '<div class="loading-spinner" style="grid-column:1/-1"><div class="spinner"></div></div>';
+
+    try {
+        const res = await API.getEvents({ page, size: 9, search, category });
+        totalPages = res.totalPages || 0;
+        document.getElementById('resultCount').textContent = `Showing ${res.events?.length || 0} of ${res.totalElements || 0} events`;
+
+        if (!res.events || res.events.length === 0) {
+            container.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--gray-500)"><i class="fas fa-calendar-times" style="font-size:48px;margin-bottom:16px;display:block"></i><h3>No events found</h3><p>Try adjusting your search or filters</p></div>';
+        } else {
+            container.innerHTML = res.events.map(e => createEventCard(e)).join('');
+        }
+        renderPagination();
+    } catch(e) {
+        container.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--danger)"><i class="fas fa-exclamation-circle" style="font-size:48px;margin-bottom:16px;display:block"></i><h3>Could not load events</h3><p>Make sure the backend server is running on port 8080</p></div>';
+    }
+}
+
+function renderPagination() {
+    const el = document.getElementById('pagination');
+    if (totalPages <= 1) { el.innerHTML = ''; return; }
+    let html = '';
+    if (currentPage > 0) html += `<button class="btn btn-outline btn-sm" onclick="loadEvents(${currentPage-1})"><i class="fas fa-chevron-left"></i></button>`;
+    for (let i = 0; i < totalPages; i++) {
+        html += `<button class="btn ${i===currentPage?'btn-primary':'btn-outline'} btn-sm" onclick="loadEvents(${i})">${i+1}</button>`;
+    }
+    if (currentPage < totalPages-1) html += `<button class="btn btn-outline btn-sm" onclick="loadEvents(${currentPage+1})"><i class="fas fa-chevron-right"></i></button>`;
+    el.innerHTML = html;
+}
+
+function debounceSearch() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => loadEvents(), 400);
+}
+
+function setView(view) {
+    currentView = view;
+    const c = document.getElementById('eventsContainer');
+    c.className = view === 'grid' ? 'events-grid' : '';
+    if (view === 'list') c.style.display = 'flex', c.style.flexDirection = 'column', c.style.gap = '16px';
+    document.getElementById('gridBtn').className = `btn ${view==='grid'?'btn-primary':'btn-outline'} btn-sm`;
+    document.getElementById('listBtn').className = `btn ${view==='list'?'btn-primary':'btn-outline'} btn-sm`;
+}
+</script>
+</body>
+</html>
