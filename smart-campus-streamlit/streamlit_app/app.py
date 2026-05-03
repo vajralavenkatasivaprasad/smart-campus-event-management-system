@@ -15,7 +15,7 @@ st.set_page_config(
 for key, val in {
     "token": None,
     "user": None,
-    "api_base": "http://localhost:8080/api",
+    "api_base": "https://smart-campus-ems-production.up.railway.app/",
 }.items():
     if key not in st.session_state:
         st.session_state[key] = val
