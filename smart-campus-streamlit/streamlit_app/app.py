@@ -1,4 +1,3 @@
-$content = @'
 """
 Smart Campus Event Management System - Streamlit Frontend
 Run: streamlit run app.py
@@ -93,5 +92,3 @@ else:
         from streamlit_app.pages import register; register.show()
     elif "Forgot" in page:
         from streamlit_app.pages import forgot_password; forgot_password.show()
-'@
-$content | Out-File -FilePath "streamlit_app\app.py" -Encoding UTF8
